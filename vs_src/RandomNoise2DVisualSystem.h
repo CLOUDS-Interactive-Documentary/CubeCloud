@@ -14,14 +14,14 @@
 #include "CloudsVisualSystem.h"
 
 //TODO: rename this to your own visual system
-class CloudsVisualSystemEmpty : public CloudsVisualSystem {
+class RandomNoise2DVisualSystem : public CloudsVisualSystem {
   public:
     
 	//TODO: Change this to the name of your visual system
 	//This determines your data path so name it at first!
 	//ie getVisualSystemDataPath() uses this
     string getSystemName(){
-		return "EmptySystem";
+		return "RandomNoise2DVisualSystem";
 	}
 
 	//These methods let us add custom GUI parameters and respond to their events
@@ -96,6 +96,7 @@ protected:
     
     //  Your Stuff
     //
+    float num_points,max_size,min_size;
 	
 	ofImage someImage;
 };
