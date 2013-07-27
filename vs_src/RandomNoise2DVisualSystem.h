@@ -98,12 +98,10 @@ protected:
     
     //  Your Stuff
     //
-    float num_points,max_size,min_size;
-	
-	ofxUISuperCanvas* customGui;
-	bool customToggle;
-	float customFloat1;
-	float customFloat2;
 	
 	ofImage someImage;
+    int* buckets;
+    int numBuckets;
+    int halfHeight, halfWidth, height, width;
+    float bucket_width, step_size, speed, top, total_width;
 };
