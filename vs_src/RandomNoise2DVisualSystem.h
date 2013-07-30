@@ -90,18 +90,18 @@ class RandomNoise2DVisualSystem : public CloudsVisualSystem {
 
     // if you use a custom camera to fly through the scene
 	// you must implement this method for the transitions to work properly
-//	ofCamera& getCameraRef(){
-//		return myCustomCamera;
-//	}
+	ofCamera& getCameraRef(){
+		return myCustomCamera;
+	}
 	
 protected:
     
     //  Your Stuff
     //
 	
+    ofCamera myCustomCamera;
 	ofImage someImage;
     int* buckets;
-    int numBuckets;
-    int halfHeight, halfWidth, height, width;
-    float bucket_width, step_size, speed, top, total_width;
+    float numBucketsAcross, bucketWidth, speed;
+    int maxNumBucketsAcross, totalNumBuckets;
 };

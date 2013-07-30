@@ -3,6 +3,7 @@
 //
 
 #include "RandomNoise2DVisualSystem.h"
+#include "ofGraphics.h"
 
 #include "CloudsRGBDVideoPlayer.h"
 #ifdef AVF_PLAYER
@@ -11,15 +12,16 @@
 
 void RandomNoise2DVisualSystem::selfSetup()
 {
-    height = ofGetHeight();
-    width = ofGetWidth();
-    halfHeight = height/2;
-    halfWidth = width/2;
-    numBuckets = width;
-    buckets = new int[numBuckets];
-    for (int i = 0; i < numBuckets; i++) {
+    maxNumBucketsAcross = 100;
+    totalNumBuckets = maxNumBucketsAcross*maxNumBucketsAcross;
+    bucketWidth = 5;
+    speed = 40;
+    numBucketsAcross = maxNumBucketsAcross;
+    buckets = new int[totalNumBuckets];
+    for (int i = 0; i < totalNumBuckets; i++) {
         buckets[i] = 0;
     }
+    myCustomCamera.lookAt(ofVec3f(maxNumBucketsAcross/2., maxNumBucketsAcross/2., maxNumBucketsAcross/2.));
 }
 
 void RandomNoise2DVisualSystem::selfPresetLoaded(string presetPath){
@@ -44,17 +46,10 @@ void RandomNoise2DVisualSystem::selfExit()
 void RandomNoise2DVisualSystem::selfSetupSystemGui()
 {
     sysGui->addLabel("NoiseBuilding");
-    speed = 40;
-    step_size = 10;
-    bucket_width = 5;
-    top = 400;
-    total_width = width;
-    sysGui->addSlider("speed", 1, 100, &speed);
-    sysGui->addSlider("step_size", 1, 100, &step_size);
-    sysGui->addSlider("bucket_width", 1, 100, &bucket_width);
+    sysGui->addSlider("speed", 1, 1000, &speed);
+    sysGui->addSlider("bucketWidth", 1, 100, &bucketWidth);
+    sysGui->addSlider("numBucketsAcross", 1, maxNumBucketsAcross, &numBucketsAcross);
     //don't set total_width greater than width, unless you increase numBuckets
-    sysGui->addSlider("total_width", 1, width, &total_width);
-    sysGui->addSlider("top", 100, height*2, &top);
 }
 
 void RandomNoise2DVisualSystem::selfSetupRenderGui()
@@ -74,47 +69,56 @@ void RandomNoise2DVisualSystem::selfKeyPressed(ofKeyEventArgs & args){
 void RandomNoise2DVisualSystem::selfUpdate()
 {
     for (int i = 0; i < speed; i++) {
-        int bucketIndex = (int)ofRandom(numBuckets);
-        buckets[bucketIndex]+=step_size;
-        if (buckets[bucketIndex] >= top){
-            buckets[bucketIndex] -= top*2;
+        int bucketIndex = (int)ofRandom(totalNumBuckets);
+        buckets[bucketIndex]++;
+        if (buckets[bucketIndex] >= numBucketsAcross){
+            buckets[bucketIndex] -= numBucketsAcross*2;
         }
     }
 }
 
 void RandomNoise2DVisualSystem::selfDraw()
 {
-    int currNumBuckets = total_width/bucket_width;
-    for (int i = 0; i < currNumBuckets; i++) {
-        int value = buckets[i];
-        if (value > 0){
-            ofRect(i*bucket_width, 0, bucket_width, value);
-        } else if (value < 0){
-            ofRect(i*bucket_width, top + value, bucket_width, -value);
+    ofSetColor(255,1);
+    glDepthMask(false);
+    for(int i = 0; i < numBucketsAcross; i++){
+        for(int j = 0; j < numBucketsAcross; j++){
+            int value = buckets[i*maxNumBucketsAcross+j];
+            if (value != 0){
+                ofPushMatrix();
+                bool negative = value < 0;
+                if (negative){value = -value;}
+                ofScale(bucketWidth, bucketWidth, bucketWidth * value);
+                //ofBox(i, j, value/2./bucketWidth, 1);
+                float z = .5;
+                if (negative){
+                    //when value == 0, z = bucketWidth*numBucketsAcross
+                    //when value == numBucketsAcross, z = .5
+                    float top = numBucketsAcross*bucketWidth;
+                    float bottom = top - bucketWidth*value;
+                    z = (top - bottom)/2.+bottom;
+                    z /= bucketWidth*value;
+                }
+                ofSetColor(255,ofMap(value, 0, numBucketsAcross, 1, 4));
+                ofBox(i, j, z, 1);
+                ofPopMatrix();
+            }
         }
     }
-//    long totalPixels = ofGetWidth() * ofGetHeight();
-//    int stepSize = totalPixels/num_points;
-//    for(int i = 0; i < totalPixels; i += stepSize){
-//        ofSetColor(ofNoise(i, ofGetElapsedTimef())*255);
-//        ofSetRectMode(OF_RECTMODE_CENTER);
-//        ofRect(i%ofGetWidth()-ofGetWidth()/2, i/ofGetWidth()-ofGetWidth()/2, ofRandom(min_size, max_size), ofRandom(min_size, max_size));
-//    }
-//    for (int y = -ofGetHeight()/2; y < ofGetHeight()/2; y++){
-//        for(int x = -ofGetWidth()/2; x < ofGetWidth()/2; x++){
-//            ofSetColor((x+y)%255, 255);
-//            ofRect(x, y, 1, 1);
-//        }
-//    }
-//    for(int i = 0; i < num_points; i++){
-//        ofSetColor(ofRandom(255));
-//        ofCircle(ofRandom(ofGetWidth())-ofGetWidth()/2, ofRandom(ofGetHeight())-ofGetHeight()/2, ofRandom(min_size, max_size));
-//    }
 }
 
 void RandomNoise2DVisualSystem::selfDrawBackground()
 {
-    
+    //2D version
+//    int currNumBuckets = total_width/bucket_width;
+//    for (int i = 0; i < currNumBuckets; i++) {
+//        int value = buckets[i];
+//        if (value > 0){
+//            ofRect(i*bucket_width, 0, bucket_width, value);
+//        } else if (value < 0){
+//            ofRect(i*bucket_width, top + value, bucket_width, -value);
+//        }
+//    }
 }
 
 void RandomNoise2DVisualSystem::selfDrawDebug()
@@ -124,7 +128,6 @@ void RandomNoise2DVisualSystem::selfDrawDebug()
 
 void RandomNoise2DVisualSystem::selfSceneTransformation()
 {
-    //ofTranslate(ofGetWidth()/2, ofGetHeight()/2);
 }
 
 void RandomNoise2DVisualSystem::selfKeyReleased(ofKeyEventArgs & args)
