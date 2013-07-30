@@ -88,17 +88,18 @@ class CubeCloud : public CloudsVisualSystem {
     void selfMouseReleased(ofMouseEventArgs& data);
 	
 
-    // if you use a custom camera to fly through the scene
-	// you must implement this method for the transitions to work properly
-	ofCamera& getCameraRef(){
-		return myCustomCamera;
-	}
+//    // if you use a custom camera to fly through the scene
+//	// you must implement this method for the transitions to work properly
+//	ofCamera& getCameraRef(){
+//		return myCustomCamera;
+//	}
 	
 protected:
     
     //  Your Stuff
     //
 	
+    ofVbo vboBox;
     ofCamera myCustomCamera;
 	ofImage someImage;
     int* buckets;
