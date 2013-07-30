@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
-#include "RandomNoise2DVisualSystem.h"
+#include "CubeCloud.h"
 
 class testApp : public ofBaseApp{
   public:
@@ -20,5 +20,5 @@ class testApp : public ofBaseApp{
 	void gotMessage(ofMessage msg);
 	void exit();
 		
-	RandomNoise2DVisualSystem visualSystem;
+	CubeCloud visualSystem;
 };

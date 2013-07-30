@@ -1,8 +1,8 @@
 //
-//  RandomNoise2DVisualSystem.cpp
+//  CubeCloud.cpp
 //
 
-#include "RandomNoise2DVisualSystem.h"
+#include "CubeCloud.h"
 #include "ofGraphics.h"
 
 #include "CloudsRGBDVideoPlayer.h"
@@ -10,7 +10,7 @@
 #include "ofxAVFVideoPlayer.h"
 #endif
 
-void RandomNoise2DVisualSystem::selfSetup()
+void CubeCloud::selfSetup()
 {
     maxNumBucketsAcross = 100;
     totalNumBuckets = maxNumBucketsAcross*maxNumBucketsAcross;
@@ -24,26 +24,26 @@ void RandomNoise2DVisualSystem::selfSetup()
     myCustomCamera.lookAt(ofVec3f(maxNumBucketsAcross/2., maxNumBucketsAcross/2., maxNumBucketsAcross/2.));
 }
 
-void RandomNoise2DVisualSystem::selfPresetLoaded(string presetPath){
+void CubeCloud::selfPresetLoaded(string presetPath){
 	
 }
 
-void RandomNoise2DVisualSystem::selfBegin()
+void CubeCloud::selfBegin()
 {
     
 }
 
-void RandomNoise2DVisualSystem::selfEnd()
+void CubeCloud::selfEnd()
 {
     
 }
 
-void RandomNoise2DVisualSystem::selfExit()
+void CubeCloud::selfExit()
 {
     delete buckets;
 }
 
-void RandomNoise2DVisualSystem::selfSetupSystemGui()
+void CubeCloud::selfSetupSystemGui()
 {
     sysGui->addLabel("NoiseBuilding");
     sysGui->addSlider("speed", 1, 1000, &speed);
@@ -52,21 +52,21 @@ void RandomNoise2DVisualSystem::selfSetupSystemGui()
     //don't set total_width greater than width, unless you increase numBuckets
 }
 
-void RandomNoise2DVisualSystem::selfSetupRenderGui()
+void CubeCloud::selfSetupRenderGui()
 {
     
 }
 
-void RandomNoise2DVisualSystem::guiSystemEvent(ofxUIEventArgs &e)
+void CubeCloud::guiSystemEvent(ofxUIEventArgs &e)
 {
     
 }
 
-void RandomNoise2DVisualSystem::selfKeyPressed(ofKeyEventArgs & args){
+void CubeCloud::selfKeyPressed(ofKeyEventArgs & args){
     
 }
 
-void RandomNoise2DVisualSystem::selfUpdate()
+void CubeCloud::selfUpdate()
 {
     for (int i = 0; i < speed; i++) {
         int bucketIndex = (int)ofRandom(totalNumBuckets);
@@ -77,7 +77,7 @@ void RandomNoise2DVisualSystem::selfUpdate()
     }
 }
 
-void RandomNoise2DVisualSystem::selfDraw()
+void CubeCloud::selfDraw()
 {
     ofSetColor(255,1);
     glDepthMask(false);
@@ -107,7 +107,7 @@ void RandomNoise2DVisualSystem::selfDraw()
     }
 }
 
-void RandomNoise2DVisualSystem::selfDrawBackground()
+void CubeCloud::selfDrawBackground()
 {
     //2D version
 //    int currNumBuckets = total_width/bucket_width;
@@ -121,51 +121,51 @@ void RandomNoise2DVisualSystem::selfDrawBackground()
 //    }
 }
 
-void RandomNoise2DVisualSystem::selfDrawDebug()
+void CubeCloud::selfDrawDebug()
 {
     
 }
 
-void RandomNoise2DVisualSystem::selfSceneTransformation()
+void CubeCloud::selfSceneTransformation()
 {
 }
 
-void RandomNoise2DVisualSystem::selfKeyReleased(ofKeyEventArgs & args)
-{
-    
-}
-
-void RandomNoise2DVisualSystem::selfMouseDragged(ofMouseEventArgs& data)
+void CubeCloud::selfKeyReleased(ofKeyEventArgs & args)
 {
     
 }
 
-void RandomNoise2DVisualSystem::selfMouseMoved(ofMouseEventArgs& data)
+void CubeCloud::selfMouseDragged(ofMouseEventArgs& data)
 {
     
 }
 
-void RandomNoise2DVisualSystem::selfMousePressed(ofMouseEventArgs& data)
+void CubeCloud::selfMouseMoved(ofMouseEventArgs& data)
 {
     
 }
 
-void RandomNoise2DVisualSystem::selfMouseReleased(ofMouseEventArgs& data)
+void CubeCloud::selfMousePressed(ofMouseEventArgs& data)
 {
     
 }
 
-void RandomNoise2DVisualSystem::selfSetupGui()
+void CubeCloud::selfMouseReleased(ofMouseEventArgs& data)
 {
     
 }
 
-void RandomNoise2DVisualSystem::selfGuiEvent(ofxUIEventArgs &e)
+void CubeCloud::selfSetupGui()
 {
     
 }
 
-void RandomNoise2DVisualSystem::guiRenderEvent(ofxUIEventArgs &e)
+void CubeCloud::selfGuiEvent(ofxUIEventArgs &e)
+{
+    
+}
+
+void CubeCloud::guiRenderEvent(ofxUIEventArgs &e)
 {
     
 }
