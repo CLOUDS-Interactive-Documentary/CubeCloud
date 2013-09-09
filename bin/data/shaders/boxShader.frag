@@ -41,6 +41,8 @@ float isSkin(){
 }
 
 void main(){
+gl_FragColor = vec4(1.0, 1.,1.,.1);//gl_Color;
+return;
     
     if(positionValid < epsilon){
     	discard;
@@ -56,5 +58,7 @@ void main(){
     vec4 col = texture2DRect(texture, gl_TexCoord[0].st);
     gl_FragColor = gl_Color * col * attenuate * max( calculateLight(), isSkin() );
 	//gl_FragColor = vec4(normal,1.0);
+    gl_FragColor = gl_Color;//vec4(1.0,0.,0.,1.0);
+    return;
 }
 

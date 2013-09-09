@@ -8,6 +8,7 @@
 //TEXTURE INFORMATION
 //
 uniform sampler2DRect texture;
+uniform sampler2D lookup;
 uniform vec2 textureSize;
 
 //COLOR
@@ -97,6 +98,22 @@ float depthValueFromSample( vec2 depthPos){
 }
 
 void main(void){
+    //floor the vertex to know which cube I am part of
+    float x = floor(gl_Vertex.x+.5);
+    float y = floor(gl_Vertex.y+.5);
+    vec4 newV = vec4(gl_Vertex.x, gl_Vertex.y, gl_Vertex.z < 0 ? 0 : gl_Vertex.z+x+y*.01f, gl_Vertex.w);
+    gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * newV;//gl_Vertex;
+    return;
+    /*
+vec4 newV = vec4(
+        x,
+        y,
+        gl_Vertex.z < 0 ? gl_Vertex.z : (texture2D(lookup, vec2(x/100, y/100)).x*100),// (buckets[int(mod(index, 1000))]),
+        gl_Vertex.w);
+        
+//vec4 newV = vec4(gl_Vertex.x, gl_Vertex.y, index, gl_Vertex.w);//(gl_Vertex.z < 0 ? 0 : buckets[int(gl_Vertex.x)]), gl_Vertex.w);
+gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * newV;//gl_Vertex;
+return;
 	
 	// Here we get the position, and account for the vertex position flowing
 	vec2 samplePos = vec2(gl_Vertex.x, + mod(gl_Vertex.y + flowPosition, depthRect.w));
@@ -194,4 +211,5 @@ void main(void){
 		
     gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * pos;
     gl_FrontColor = gl_Color;
+    */
 }

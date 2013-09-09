@@ -17,60 +17,93 @@ void CubeCloud::selfSetup()
     bucketWidth = 5;
     speed = 40;
     numBucketsAcross = maxNumBucketsAcross;
-    buckets = new int[totalNumBuckets];
-    for (int i = 0; i < totalNumBuckets; i++) {
-        buckets[i] = 0;
-    }
+    
+    boxShader.load(getVisualSystemDataPath() + "shaders/boxShader");
+    randShader.load(getVisualSystemDataPath() + "shaders/randShader");
+    lookupA.allocate(maxNumBucketsAcross, maxNumBucketsAcross, GL_LUMINANCE);
+    lookupB.allocate(maxNumBucketsAcross, maxNumBucketsAcross, GL_LUMINANCE);
+    flip = true;
+    
     myCustomCamera.lookAt(ofVec3f(maxNumBucketsAcross/2., maxNumBucketsAcross/2., maxNumBucketsAcross/2.));
     
     //create the box VBO
     //borrowed from ofBox
-	float h = .5;
-    ofVec3f vertices[] = {
-        ofVec3f(+h,-h,+h), ofVec3f(+h,-h,-h), ofVec3f(+h,+h,-h), ofVec3f(+h,+h,+h),
-        ofVec3f(+h,+h,+h), ofVec3f(+h,+h,-h), ofVec3f(-h,+h,-h), ofVec3f(-h,+h,+h),
-        ofVec3f(+h,+h,+h), ofVec3f(-h,+h,+h), ofVec3f(-h,-h,+h), ofVec3f(+h,-h,+h),
-        ofVec3f(-h,-h,+h), ofVec3f(-h,+h,+h), ofVec3f(-h,+h,-h), ofVec3f(-h,-h,-h),
-        ofVec3f(-h,-h,+h), ofVec3f(-h,-h,-h), ofVec3f(+h,-h,-h), ofVec3f(+h,-h,+h),
-        ofVec3f(-h,-h,-h), ofVec3f(-h,+h,-h), ofVec3f(+h,+h,-h), ofVec3f(+h,-h,-h)
-    };
-    vboBox.setVertexData(vertices,24,GL_DYNAMIC_DRAW);
+	float h = .49;
+    //fuck it, brute force...
+    ofVec3f vertices[24*10000];
+    for(int i = 0, j = 0, k = .5, m = .5; i < 10000; i++, k+=1){
+        if (k >= 100){m+=1; k = .5;}
+        vertices[j++] = ofVec3f(k+h,m-h,+h); vertices[j++] = ofVec3f(k+h,m-h,-h); vertices[j++] = ofVec3f(k+h,m+h,-h); vertices[j++] = ofVec3f(k+h,m+h,+h);
+        vertices[j++] = ofVec3f(k+h,m+h,+h); vertices[j++] = ofVec3f(k+h,m+h,-h); vertices[j++] = ofVec3f(k-h,m+h,-h); vertices[j++] = ofVec3f(k-h,m+h,+h);
+        vertices[j++] = ofVec3f(k+h,m+h,+h); vertices[j++] = ofVec3f(k-h,m+h,+h); vertices[j++] = ofVec3f(k-h,m-h,+h); vertices[j++] = ofVec3f(k+h,m-h,+h);
+        vertices[j++] = ofVec3f(k-h,m-h,+h); vertices[j++] = ofVec3f(k-h,m+h,+h); vertices[j++] = ofVec3f(k-h,m+h,-h); vertices[j++] = ofVec3f(k-h,m-h,-h);
+        vertices[j++] = ofVec3f(k-h,m-h,+h); vertices[j++] = ofVec3f(k-h,m-h,-h); vertices[j++] = ofVec3f(k+h,m-h,-h); vertices[j++] = ofVec3f(k+h,m-h,+h);
+        vertices[j++] = ofVec3f(k-h,m-h,-h); vertices[j++] = ofVec3f(k-h,m+h,-h); vertices[j++] = ofVec3f(k+h,m+h,-h); vertices[j++] = ofVec3f(k+h,m-h,-h);
+    }
+    vboBox.setVertexData(vertices,24*10000,GL_DYNAMIC_DRAW);
+//    ofVec3f vertices[] = {
+//        ofVec3f(+h,-h,+h), ofVec3f(+h,-h,-h), ofVec3f(+h,+h,-h), ofVec3f(+h,+h,+h),
+//        ofVec3f(+h,+h,+h), ofVec3f(+h,+h,-h), ofVec3f(-h,+h,-h), ofVec3f(-h,+h,+h),
+//        ofVec3f(+h,+h,+h), ofVec3f(-h,+h,+h), ofVec3f(-h,-h,+h), ofVec3f(+h,-h,+h),
+//        ofVec3f(-h,-h,+h), ofVec3f(-h,+h,+h), ofVec3f(-h,+h,-h), ofVec3f(-h,-h,-h),
+//        ofVec3f(-h,-h,+h), ofVec3f(-h,-h,-h), ofVec3f(+h,-h,-h), ofVec3f(+h,-h,+h),
+//        ofVec3f(-h,-h,-h), ofVec3f(-h,+h,-h), ofVec3f(+h,+h,-h), ofVec3f(+h,-h,-h)
+//    };
+//    vboBox.setVertexData(vertices,24,GL_DYNAMIC_DRAW);
     
-    static ofVec3f normals[] = {
-        ofVec3f(+1,0,0), ofVec3f(+1,0,0), ofVec3f(+1,0,0), ofVec3f(+1,0,0),
-        ofVec3f(0,+1,0), ofVec3f(0,+1,0), ofVec3f(0,+1,0), ofVec3f(0,+1,0),
-        ofVec3f(0,0,+1), ofVec3f(0,0,+1), ofVec3f(0,0,+1), ofVec3f(0,0,+1),
-        ofVec3f(-1,0,0), ofVec3f(-1,0,0), ofVec3f(-1,0,0), ofVec3f(-1,0,0),
-        ofVec3f(0,-1,0), ofVec3f(0,-1,0), ofVec3f(0,-1,0), ofVec3f(0,-1,0),
-        ofVec3f(0,0,-1), ofVec3f(0,0,-1), ofVec3f(0,0,-1), ofVec3f(0,0,-1)
-    };
-    vboBox.setNormalData(normals,24,GL_DYNAMIC_DRAW);
+    //don't need normals unless we do lighting?
+//    static ofVec3f normals[] = {
+//        ofVec3f(+1,0,0), ofVec3f(+1,0,0), ofVec3f(+1,0,0), ofVec3f(+1,0,0),
+//        ofVec3f(0,+1,0), ofVec3f(0,+1,0), ofVec3f(0,+1,0), ofVec3f(0,+1,0),
+//        ofVec3f(0,0,+1), ofVec3f(0,0,+1), ofVec3f(0,0,+1), ofVec3f(0,0,+1),
+//        ofVec3f(-1,0,0), ofVec3f(-1,0,0), ofVec3f(-1,0,0), ofVec3f(-1,0,0),
+//        ofVec3f(0,-1,0), ofVec3f(0,-1,0), ofVec3f(0,-1,0), ofVec3f(0,-1,0),
+//        ofVec3f(0,0,-1), ofVec3f(0,0,-1), ofVec3f(0,0,-1), ofVec3f(0,0,-1)
+//    };
+//    vboBox.setNormalData(normals,24,GL_DYNAMIC_DRAW);
     
-    static ofVec2f tex[] = {
-        ofVec2f(1,0), ofVec2f(0,0), ofVec2f(0,1), ofVec2f(1,1),
-        ofVec2f(1,1), ofVec2f(1,0), ofVec2f(0,0), ofVec2f(0,1),
-        ofVec2f(0,1), ofVec2f(1,1), ofVec2f(1,0), ofVec2f(0,0),
-        ofVec2f(0,0), ofVec2f(0,1), ofVec2f(1,1), ofVec2f(1,0),
-        ofVec2f(0,0), ofVec2f(0,1), ofVec2f(1,1), ofVec2f(1,0),
-        ofVec2f(0,0), ofVec2f(0,1), ofVec2f(1,1), ofVec2f(1,0)
-    };
-    vboBox.setTexCoordData(tex,24,GL_DYNAMIC_DRAW);
+    //don't need texture coords unless we want to texture it?
+//    static ofVec2f tex[] = {
+//        ofVec2f(1,0), ofVec2f(0,0), ofVec2f(0,1), ofVec2f(1,1),
+//        ofVec2f(1,1), ofVec2f(1,0), ofVec2f(0,0), ofVec2f(0,1),
+//        ofVec2f(0,1), ofVec2f(1,1), ofVec2f(1,0), ofVec2f(0,0),
+//        ofVec2f(0,0), ofVec2f(0,1), ofVec2f(1,1), ofVec2f(1,0),
+//        ofVec2f(0,0), ofVec2f(0,1), ofVec2f(1,1), ofVec2f(1,0),
+//        ofVec2f(0,0), ofVec2f(0,1), ofVec2f(1,1), ofVec2f(1,0)
+//    };
+//    vboBox.setTexCoordData(tex,24,GL_DYNAMIC_DRAW);
     
-    static ofIndexType indices[] = {
-        0,1,2, // right top left
-        0,2,3, // right bottom right
-        4,5,6, // bottom top right
-        4,6,7, // bottom bottom left
-        8,9,10, // back bottom right
-        8,10,11, // back top left
-        12,13,14, // left bottom right
-        12,14,15, // left top left
-        16,17,18, // ... etc
-        16,18,19,
-        20,21,22,
-        20,22,23
-    };
-    vboBox.setIndexData(indices,36,GL_DYNAMIC_DRAW);
+    static ofIndexType indices[36*10000];
+    for(int i = 0, j = 0, k = 0; i < 10000; i++, k+=24){
+        indices[j++] = 0+k; indices[j++] = 1+k; indices[j++] = 2+k;
+        indices[j++] = 0+k; indices[j++] = 2+k; indices[j++] = 3+k;
+        indices[j++] = 4+k; indices[j++] = 5+k; indices[j++] = 6+k;
+        indices[j++] = 4+k; indices[j++] = 6+k; indices[j++] = 7+k;
+        indices[j++] = 8+k; indices[j++] = 9+k; indices[j++] = 10+k;
+        indices[j++] = 8+k; indices[j++] = 10+k; indices[j++] = 11+k;
+        indices[j++] = 12+k; indices[j++] = 13+k; indices[j++] = 14+k;
+        indices[j++] = 12+k; indices[j++] = 14+k; indices[j++] = 15+k;
+        indices[j++] = 16+k; indices[j++] = 17+k; indices[j++] = 18+k;
+        indices[j++] = 16+k; indices[j++] = 18+k; indices[j++] = 19+k;
+        indices[j++] = 20+k; indices[j++] = 21+k; indices[j++] = 22+k;
+        indices[j++] = 20+k; indices[j++] = 22+k; indices[j++] = 23+k;
+    }
+    vboBox.setIndexData(indices,36*10000,GL_DYNAMIC_DRAW);
+//    static ofIndexType indices[] = {
+//        0,1,2, // right top left
+//        0,2,3, // right bottom right
+//        4,5,6, // bottom top right
+//        4,6,7, // bottom bottom left
+//        8,9,10, // back bottom right
+//        8,10,11, // back top left
+//        12,13,14, // left bottom right
+//        12,14,15, // left top left
+//        16,17,18, // ... etc
+//        16,18,19,
+//        20,21,22,
+//        20,22,23
+//    };
+//    vboBox.setIndexData(indices,36,GL_DYNAMIC_DRAW);
     
     
 //    ofVec3f vertices[8];
@@ -115,7 +148,13 @@ void CubeCloud::selfPresetLoaded(string presetPath){
 
 void CubeCloud::selfBegin()
 {
+    lookupA.begin();
+    ofClear(0, 0, 0, 255);
+    lookupA.end();
     
+    lookupB.begin();
+    ofClear(0, 0, 0, 255);
+    lookupB.end();
 }
 
 void CubeCloud::selfEnd()
@@ -125,7 +164,6 @@ void CubeCloud::selfEnd()
 
 void CubeCloud::selfExit()
 {
-    delete buckets;
 }
 
 void CubeCloud::selfSetupSystemGui()
@@ -153,46 +191,36 @@ void CubeCloud::selfKeyPressed(ofKeyEventArgs & args){
 
 void CubeCloud::selfUpdate()
 {
-    for (int i = 0; i < speed; i++) {
-        int bucketIndex = (int)ofRandom(totalNumBuckets);
-        buckets[bucketIndex]++;
-        if (buckets[bucketIndex] >= numBucketsAcross){
-            buckets[bucketIndex] -= numBucketsAcross*2;
-        }
+    randShader.begin();
+    if (flip){
+        lookupA.getTextureReference().bind();
+        lookupB.begin();
+    } else {//flop
+        lookupB.getTextureReference().bind();
+        lookupA.begin();
     }
+    
+    
+    
+    if (flip){
+        lookupA.getTextureReference().unbind();
+        lookupB.end();
+    } else {//flop
+        lookupB.getTextureReference().bind();
+        lookupA.end();
+    }
+    randShader.end();
+    
+    flip = !flip;
 }
 
 void CubeCloud::selfDraw()
 {
+	boxShader.begin();
     glDisable(GL_DEPTH_TEST);
     ofSetColor(255,1);
-//    glEnable(GL_DEPTH_TEST);
-    for(int i = 0; i < numBucketsAcross; i++){
-        for(int j = 0; j < numBucketsAcross; j++){
-            int value = buckets[i*maxNumBucketsAcross+j];
-            if (value != 0){
-                ofPushMatrix();
-                bool negative = value < 0;
-                if (negative){value = -value;}
-                ofScale(bucketWidth, bucketWidth, bucketWidth * value);
-                //ofBox(i, j, value/2./bucketWidth, 1);
-                float z = .5;
-                if (negative){
-                    //when value == 0, z = bucketWidth*numBucketsAcross
-                    //when value == numBucketsAcross, z = .5
-                    float top = numBucketsAcross*bucketWidth;
-                    float bottom = top - bucketWidth*value;
-                    z = (top - bottom)/2.+bottom;
-                    z /= bucketWidth*value;
-                }
-                ofSetColor(255,ofMap(value, 0, numBucketsAcross, 1, 4));
-                ofTranslate(i, j, z);
-                //ofBox(i, j, z, 1);
-                vboBox.drawElements(GL_TRIANGLES, 36);
-                ofPopMatrix();
-            }
-        }
-    }
+    vboBox.drawElements(GL_TRIANGLES, 36*10000);
+	boxShader.end();
 }
 
 void CubeCloud::selfDrawBackground()

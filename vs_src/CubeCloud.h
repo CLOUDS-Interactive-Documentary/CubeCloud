@@ -102,7 +102,12 @@ protected:
     ofVbo vboBox;
     ofCamera myCustomCamera;
 	ofImage someImage;
-    int* buckets;
     float numBucketsAcross, bucketWidth, speed;
     int maxNumBucketsAcross, totalNumBuckets;
+    ofMesh meshBox, meshPlane;
+    ofVboMesh vboMeshBox;
+    ofShader boxShader, randShader;
+//    ofTexture lookupA, lookupB;
+    ofFbo lookupA, lookupB;
+    bool flip;
 };
