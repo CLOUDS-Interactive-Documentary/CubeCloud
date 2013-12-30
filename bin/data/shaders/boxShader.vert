@@ -8,7 +8,7 @@
 //TEXTURE INFORMATION
 //
 uniform sampler2DRect texture;
-uniform sampler2D lookup;
+uniform sampler2DRect lookup;
 uniform vec2 textureSize;
 
 //COLOR
@@ -97,20 +97,30 @@ float depthValueFromSample( vec2 depthPos){
     return depth * ( maxDepth - minDepth ) + minDepth;
 }
 
+float getBarProgress(float x, float y){
+    vec4 val = texture2DRect(lookup, vec2(x, y));
+    return (val.r+val.g+val.b)/3.;
+}
+
 void main(void){
     //floor the vertex to know which cube I am part of
     float x = floor(gl_Vertex.x+.5);
     float y = floor(gl_Vertex.y+.5);
-    vec4 newV = vec4(gl_Vertex.x, gl_Vertex.y, gl_Vertex.z < 0 ? 0 : gl_Vertex.z+x+y*.01f, gl_Vertex.w);
+    //vec4 newV = vec4(gl_Vertex.x, gl_Vertex.y, gl_Vertex.z < 0 ? 0 : gl_Vertex.z+x+y*.01f, gl_Vertex.w);
+    //return;
+    float bp = getBarProgress(x, y);
+    
+vec4 newV = vec4(
+        gl_Vertex.x,
+        gl_Vertex.y,
+        gl_Vertex.z < 0
+                 ? (bp < .5 ? 0. : (bp-.5)*200.)
+                 : (bp < .5 ? bp*200. : 100.),
+        gl_Vertex.w);
+    
     gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * newV;//gl_Vertex;
     return;
     /*
-vec4 newV = vec4(
-        x,
-        y,
-        gl_Vertex.z < 0 ? gl_Vertex.z : (texture2D(lookup, vec2(x/100, y/100)).x*100),// (buckets[int(mod(index, 1000))]),
-        gl_Vertex.w);
-        
 //vec4 newV = vec4(gl_Vertex.x, gl_Vertex.y, index, gl_Vertex.w);//(gl_Vertex.z < 0 ? 0 : buckets[int(gl_Vertex.x)]), gl_Vertex.w);
 gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * newV;//gl_Vertex;
 return;
@@ -211,5 +221,5 @@ return;
 		
     gl_Position = gl_ProjectionMatrix * gl_ModelViewMatrix * pos;
     gl_FrontColor = gl_Color;
-    */
+     */
 }

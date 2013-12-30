@@ -20,15 +20,40 @@ void CubeCloud::selfSetup()
     
     boxShader.load(getVisualSystemDataPath() + "shaders/boxShader");
     randShader.load(getVisualSystemDataPath() + "shaders/randShader");
-    lookupA.allocate(maxNumBucketsAcross, maxNumBucketsAcross, GL_LUMINANCE);
-    lookupB.allocate(maxNumBucketsAcross, maxNumBucketsAcross, GL_LUMINANCE);
+    //problem with GL_LUMINANCE http://forum.openframeworks.cc/t/offbo-supported-colour-modes/10136
+    ofFbo::Settings fboSettings;
+    fboSettings.height = maxNumBucketsAcross;
+    fboSettings.width = maxNumBucketsAcross;
+    fboSettings.maxFilter = GL_NEAREST;
+    fboSettings.minFilter = GL_NEAREST;
+    fboSettings.wrapModeHorizontal = GL_REPEAT;
+    fboSettings.wrapModeVertical = GL_REPEAT;
+    fboSettings.internalformat = GL_RGB;//GL_LUMINANCE32F_ARB
+    fboSettings.numSamples = 0;
+    
+    //FROM ofFbo.allocate:
+#ifdef TARGET_OPENGLES
+	fboSettings.useDepth		= false;
+	fboSettings.useStencil		= false;
+	//we do this as the fbo and the settings object it contains could be created before the user had the chance to disable or enable arb rect.
+    fboSettings.textureTarget	= GL_TEXTURE_2D;
+#else
+	fboSettings.useDepth		= true;
+	fboSettings.useStencil		= true;
+	//we do this as the fbo and the settings object it contains could be created before the user had the chance to disable or enable arb rect.
+    fboSettings.textureTarget	= ofGetUsingArbTex() ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D;
+#endif
+    //END FROM
+    
+    lookupA.allocate(fboSettings);
+    lookupB.allocate(fboSettings);
     flip = true;
     
     myCustomCamera.lookAt(ofVec3f(maxNumBucketsAcross/2., maxNumBucketsAcross/2., maxNumBucketsAcross/2.));
     
     //create the box VBO
     //borrowed from ofBox
-	float h = .49;
+	float h = .4999;
     //fuck it, brute force...
     ofVec3f vertices[24*10000];
     for(int i = 0, j = 0, k = .5, m = .5; i < 10000; i++, k+=1){
@@ -149,11 +174,11 @@ void CubeCloud::selfPresetLoaded(string presetPath){
 void CubeCloud::selfBegin()
 {
     lookupA.begin();
-    ofClear(0, 0, 0, 255);
-    lookupA.end();
+    ofClear(0, 0, 0, 0);
+    lookupA.end();  
     
     lookupB.begin();
-    ofClear(0, 0, 0, 255);
+    ofClear(0, 0, 0, 0);
     lookupB.end();
 }
 
@@ -191,24 +216,31 @@ void CubeCloud::selfKeyPressed(ofKeyEventArgs & args){
 
 void CubeCloud::selfUpdate()
 {
+    ofFbo* from;
+    ofFbo* to;
     randShader.begin();
     if (flip){
-        lookupA.getTextureReference().bind();
-        lookupB.begin();
+        from = &lookupA;
+        to = &lookupB;
     } else {//flop
-        lookupB.getTextureReference().bind();
-        lookupA.begin();
+        from = &lookupB;
+        to = &lookupA;
     }
     
+//    from->getTextureReference().bind();
+    randShader.setUniformTexture("inputTex", from->getTextureReference(), 1);
+    randShader.setUniform1f("i", ofRandomf());
+    int sel[] = {55,10, 999, 8493, 2304};
+    randShader.setUniform1iv("sel", sel, 5);
+    to->begin();
     
+    //TODO: stuff
+    ofClear(0, 0, 0, 0);
+    //ofSetColor(0, 0, 0, 0);
+    ofRect(0, 0, to->getWidth(), to->getHeight());
     
-    if (flip){
-        lookupA.getTextureReference().unbind();
-        lookupB.end();
-    } else {//flop
-        lookupB.getTextureReference().bind();
-        lookupA.end();
-    }
+    from->getTextureReference().unbind();
+    to->end();
     randShader.end();
     
     flip = !flip;
@@ -217,14 +249,25 @@ void CubeCloud::selfUpdate()
 void CubeCloud::selfDraw()
 {
 	boxShader.begin();
+    boxShader.setUniformTexture("lookup", (flip ? lookupB : lookupA).getTextureReference(), 1);
     glDisable(GL_DEPTH_TEST);
-    ofSetColor(255,1);
+    //ofSetColor(255,1);
     vboBox.drawElements(GL_TRIANGLES, 36*10000);
 	boxShader.end();
 }
 
 void CubeCloud::selfDrawBackground()
 {
+    ofFbo* from;
+    ofFbo* to;
+    if (flip){
+        to = &lookupB;
+    } else {//flop
+        to = &lookupA;
+    }
+    
+    to->draw(0, 0);
+
     //2D version
 //    int currNumBuckets = total_width/bucket_width;
 //    for (int i = 0; i < currNumBuckets; i++) {

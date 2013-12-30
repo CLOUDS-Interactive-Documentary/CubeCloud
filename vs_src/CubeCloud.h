@@ -60,13 +60,10 @@ class CubeCloud : public CloudsVisualSystem {
 	// selfDraw draws in 3D using the default ofEasyCamera
 	// you can change the camera by returning getCameraRef()
     void selfDraw();
-	
+		
     // draw any debug stuff here
 	void selfDrawDebug();
 
-	//draws through RGBD camera;
-//	void selfDrawRGBD();
-	
 	// or you can use selfDrawBackground to do 2D drawings that don't use the 3D camera
 	void selfDrawBackground();
 
@@ -93,7 +90,15 @@ class CubeCloud : public CloudsVisualSystem {
 //	ofCamera& getCameraRef(){
 //		return myCustomCamera;
 //	}
-	
+
+	//
+	ofCamera& getCameraRef(){
+		if(videoLoaded){
+			return cloudsCamera;
+		}
+		return CloudsVisualSystem::getCameraRef();
+	}
+
 protected:
     
     //  Your Stuff
@@ -101,7 +106,6 @@ protected:
 	
     ofVbo vboBox;
     ofCamera myCustomCamera;
-	ofImage someImage;
     float numBucketsAcross, bucketWidth, speed;
     int maxNumBucketsAcross, totalNumBuckets;
     ofMesh meshBox, meshPlane;
@@ -110,4 +114,12 @@ protected:
 //    ofTexture lookupA, lookupB;
     ofFbo lookupA, lookupB;
     bool flip;
+	ofxUISuperCanvas* customGui;
+	bool customToggle;
+	float customFloat1;
+	float customFloat2;
+	
+	bool videoLoaded;
+	ofShader pointcloudShader;
+	ofVboMesh simplePointcloud;
 };

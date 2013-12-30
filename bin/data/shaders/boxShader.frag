@@ -49,7 +49,7 @@ return;
         return;
     }
 
-	float attenuate = baseMultiplier + max(isEye() * eyeMultiplier, isSkin() * skinMultiplier);
+	float attenuate = 1.0 + max(isEye() * eyeMultiplier, isSkin() * skinMultiplier);
 	if(attenuate < epsilon){
 		discard;
 		return;
