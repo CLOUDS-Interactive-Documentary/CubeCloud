@@ -4,7 +4,10 @@ const float MIN_AMT = 1./400.;
 
 uniform sampler2DRect inputTex;
 uniform float i;
-uniform int sel[5];
+uniform int sel[200];
+uniform int type;
+uniform float cutoff;
+uniform float multiplier;
 
 float rand(vec2 n)
 {
@@ -15,25 +18,36 @@ float rand(vec2 n)
 vec4 inc(vec4 curr){
     bool bInc = false;
     int index = int(floor(gl_FragCoord.y)*100.+floor(gl_FragCoord.x));
-    for (int j = 0; j < 5; j++){
-        if (index == sel[j]){
-            bInc = true;
-            break;
+    if (type == 0){//randomness is controlled by OF
+        for (int j = 0; j < 5; j++){
+            if (index == sel[j]){
+                bInc = true;
+                break;
+            } else if (sel[j] == -1){
+                break;
+            }
         }
+    } else if (type == 1){
+        float fInc = rand(vec2(i, gl_FragCoord.x+gl_FragCoord.y/100.));//one half is slightly heavier than other
+        bInc = (fInc > cutoff);
+    } else if (type == 2){
+        float fInc = rand(vec2(gl_FragCoord.y, rand(vec2(i, gl_FragCoord.x))));//gives stripes
+        bInc = (fInc > cutoff);
+    } else if (type == 3){
+        bInc = floor(float(index)/1000.) == float(index)/1000.;//useful for testing
+    } else if (type == 4){
+        bInc = (rand(gl_FragCoord.xy) > .9);//useful for testing GL_NEAREST
+    } else if (type == 5){
+        float fInc = rand(vec2(i, gl_FragCoord.x/2.+gl_FragCoord.y/200.));//still has 'sections', but seems better
+        bInc = (fInc > cutoff);
     }
-    //bInc = floor(float(index)/1000.) == float(index)/1000.;
-    //the actual random implementation
-    //float fInc = rand(vec2(gl_FragCoord.y, rand(vec2(i, gl_FragCoord.x))));//gives stripes
-//    float fInc = rand(vec2(i, gl_FragCoord.x+gl_FragCoord.y/100.));//one half is heavier than other
-//    bool bInc = (fInc > .99);
-    //for testing GL_NEAREST
-    //bool bInc = (rand(gl_FragCoord.xy) > .9);
+    
     if (!bInc){
         return curr;
     } else {
         for(int j = 2; j >= 0; j--){
             if (curr[j] < 1.){
-                curr[j] += MIN_AMT*10.;
+                curr[j] += MIN_AMT*multiplier;
                 return curr;
             }
         }

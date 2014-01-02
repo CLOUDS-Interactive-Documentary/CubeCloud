@@ -41,7 +41,7 @@ float isSkin(){
 }
 
 void main(){
-gl_FragColor = vec4(1.0, 1.,1.,.1);//gl_Color;
+gl_FragColor = vec4(1.0, 1., 1., .01);//gl_Color;
 return;
     
     if(positionValid < epsilon){

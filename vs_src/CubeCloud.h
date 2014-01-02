@@ -106,7 +106,7 @@ protected:
 	
     ofVbo vboBox;
     ofCamera myCustomCamera;
-    float numBucketsAcross, bucketWidth, speed;
+    float numBucketsAcross, bucketWidth, speed, randType, bucketMult, bucketProb;
     int maxNumBucketsAcross, totalNumBuckets;
     ofMesh meshBox, meshPlane;
     ofVboMesh vboMeshBox;

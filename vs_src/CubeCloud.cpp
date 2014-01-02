@@ -15,7 +15,9 @@ void CubeCloud::selfSetup()
     maxNumBucketsAcross = 100;
     totalNumBuckets = maxNumBucketsAcross*maxNumBucketsAcross;
     bucketWidth = 5;
-    speed = 40;
+    bucketProb = .01;
+    bucketMult = 10;
+    randType = 0;
     numBucketsAcross = maxNumBucketsAcross;
     
     boxShader.load(getVisualSystemDataPath() + "shaders/boxShader");
@@ -194,9 +196,11 @@ void CubeCloud::selfExit()
 void CubeCloud::selfSetupSystemGui()
 {
     sysGui->addLabel("NoiseBuilding");
-    sysGui->addSlider("speed", 1, 1000, &speed);
-    sysGui->addSlider("bucketWidth", 1, 100, &bucketWidth);
-    sysGui->addSlider("numBucketsAcross", 1, maxNumBucketsAcross, &numBucketsAcross);
+    sysGui->addNumberDialer("type", 0, 5, &randType, 1);
+    sysGui->addSlider("cutoff", 0, 1, &bucketProb);
+    sysGui->addSlider("multiplier", 1, 100, &bucketMult);
+//    sysGui->addSlider("bucketWidth", 1, 100, &bucketWidth);
+//    sysGui->addSlider("numBucketsAcross", 1, maxNumBucketsAcross, &numBucketsAcross);
     //don't set total_width greater than width, unless you increase numBuckets
 }
 
@@ -226,12 +230,28 @@ void CubeCloud::selfUpdate()
         from = &lookupB;
         to = &lookupA;
     }
+    int type = (int)randType;
     
-//    from->getTextureReference().bind();
     randShader.setUniformTexture("inputTex", from->getTextureReference(), 1);
     randShader.setUniform1f("i", ofRandomf());
-    int sel[] = {55,10, 999, 8493, 2304};
-    randShader.setUniform1iv("sel", sel, 5);
+    randShader.setUniform1f("cutoff", 1-bucketProb);
+    randShader.setUniform1i("type", type);
+    randShader.setUniform1f("multiplier", bucketMult);
+    
+    if (type == 0){
+        int selSize = 200;//can't go much higher than this
+        int selSizeUsed = MIN(selSize*bucketProb, selSize);
+        printf("selSizeUsed:%d",selSizeUsed);
+        int sel[selSize];
+        int i = 0;
+        for (; i < selSizeUsed; i++) {
+            sel[i] = (int)ofRandom(totalNumBuckets);
+        }
+        for(; i < selSize; i++){
+            sel[i] = -1;
+        }
+        randShader.setUniform1iv("sel", sel, selSize);
+    }
     to->begin();
     
     //TODO: stuff
@@ -239,7 +259,6 @@ void CubeCloud::selfUpdate()
     //ofSetColor(0, 0, 0, 0);
     ofRect(0, 0, to->getWidth(), to->getHeight());
     
-    from->getTextureReference().unbind();
     to->end();
     randShader.end();
     
@@ -258,15 +277,17 @@ void CubeCloud::selfDraw()
 
 void CubeCloud::selfDrawBackground()
 {
-    ofFbo* from;
-    ofFbo* to;
-    if (flip){
-        to = &lookupB;
-    } else {//flop
-        to = &lookupA;
+    if (bDebug){
+        ofFbo* from;
+        ofFbo* to;
+        if (flip){
+            to = &lookupB;
+        } else {//flop
+            to = &lookupA;
+        }
+        
+        to->draw(0, 0);
     }
-    
-    to->draw(0, 0);
 
     //2D version
 //    int currNumBuckets = total_width/bucket_width;
